@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Locomotives - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">2024 Locomotive Fleet</h2>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('locomotives.add') }}" class="btn" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+            <i class="fas fa-plus me-2"></i>Add Locomotive
+        </a>
+    </div>
+</div>
+
+<!-- Locomotive List -->
+<div class="card" style="border: 2px solid #6c757d;">
+    <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2" style="color: #495057;"></i>Locomotive Fleet
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="border: 1px solid #dee2e6;">
+                <thead style="background-color: #f8f9fa;">
+                    <tr>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Locomotive ID</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Model</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Fleet Type</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Age</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Operating Hours</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Status</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Risk Level</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Reliability</th>
+                        <th style="border-bottom: 2px solid #6c757d; color: #495057;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if locomotives %}
+                        {% for locomotive in locomotives %}
+                        <tr>
+                            <td>
+                                <strong>{{ locomotive.locomotive_id }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ '#007bff' if locomotive.model == 'DE10' else '#17a2b8' }}; color: white;">
+                                    {{ locomotive.model }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ '#28a745' if locomotive.model == 'DE10' else '#ffc107' }}; color: {{ 'white' if locomotive.model == 'DE10' else 'black' }};">
+                                    {{ 'NRZ Fleet' if locomotive.model == 'DE10' else 'Hired Fleet' }}
+                                </span>
+                            </td>
+                            <td>{{ locomotive.age }} years</td>
+                            <td>{{ "{:,}".format(locomotive.operating_hours) }}</td>
+                            <td>
+                                <span class="badge" style="background-color: {{ '#28a745' if locomotive.status_color == 'success' else '#ffc107' if locomotive.status_color == 'warning' else '#dc3545' if locomotive.status_color == 'danger' else '#6c757d' }}; color: {{ 'white' if locomotive.status_color in ['success', 'danger'] else 'black' }};">
+                                    {{ locomotive.status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ '#dc3545' if locomotive.get_risk_level() == 'High' else '#ffc107' if locomotive.get_risk_level() == 'Medium' else '#28a745' }}; color: {{ 'white' if locomotive.get_risk_level() in ['High', 'Low'] else 'black' }};">
+                                    {{ locomotive.get_risk_level() }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ '#28a745' if locomotive.calculate_reliability() >= 70 else '#ffc107' if locomotive.calculate_reliability() >= 60 else '#dc3545' }}; color: {{ 'white' if locomotive.calculate_reliability() >= 70 or locomotive.calculate_reliability() < 60 else 'black' }};">
+                                    {{ "%.1f"|format(locomotive.calculate_reliability()) }}%
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('locomotives.view', id=locomotive.id) }}" class="btn btn-sm" style="background-color: white; color: #007bff; border: 1px solid #007bff;">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('locomotives.edit', id=locomotive.id) }}" class="btn btn-sm" style="background-color: white; color: #6c757d; border: 1px solid #6c757d;">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm" style="background-color: white; color: #dc3545; border: 1px solid #dc3545;" onclick="confirmDelete({{ locomotive.id }}, '{{ locomotive.locomotive_id }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="fas fa-train fa-3x" style="color: #6c757d; margin-bottom: 1rem;"></i>
+                                    <h5 style="color: #6c757d;">No Locomotives Found</h5>
+                                    <p style="color: #6c757d; margin-bottom: 1rem;">Start by adding your first locomotive to the fleet.</p>
+                                    <a href="{{ url_for('locomotives.add') }}" class="btn" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+                                        <i class="fas fa-plus me-2"></i>Add First Locomotive
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(id, locomotiveId) {
+    if (confirm(`Are you sure you want to delete locomotive ${locomotiveId}?\n\nThis action cannot be undone.`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/locomotives/delete/${id}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

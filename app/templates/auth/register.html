@@ -1,0 +1,243 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Register - NRZ LPPS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Compact form styling for register page */
+    .auth-container.wide .auth-body {
+        padding: 1.5rem;
+    }
+    
+    .auth-container.wide .form-control {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .auth-container.wide .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+    }
+    
+    .auth-container.wide .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .auth-container.wide .input-group-text {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .auth-container.wide .form-text {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    
+    .auth-container.wide .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .auth-container.wide .progress {
+        height: 6px;
+        margin-top: 0.5rem;
+    }
+    
+    .auth-container.wide .list-group-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container wide">
+    <div class="auth-header">
+        <i class="fas fa-user-plus"></i>
+        <h3>Create Account</h3>
+        <p>Join the Locomotive Performance Prediction System</p>
+    </div>
+    
+    <div class="auth-body">
+        <form method="POST" id="registerForm">
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                </div>
+                <div class="col-6 mb-3">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                </div>
+            </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="form-text">3-30 characters, letters, numbers, and underscores only</div>
+                        <div id="username-feedback" class="form-text"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div id="email-feedback" class="form-text"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="form-text">
+                            <strong>Requirements:</strong>
+                            <ul class="mb-0">
+                                <li>At least 8 characters</li>
+                                <li>Mix of uppercase and lowercase letters</li>
+                                <li>At least one number</li>
+                                <li>At least one special character</li>
+                            </ul>
+                        </div>
+                        <div class="mt-2">
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar" id="password-strength-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="password-strength-text" class="form-text"></small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <div id="password-match-feedback" class="form-text"></div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+                
+        <div class="text-center mt-4">
+            <p class="mb-0">Already have an account? <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Login here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    
+    // Username validation
+    usernameInput.addEventListener('blur', function() {
+        const username = this.value;
+        if (username.length >= 3) {
+            fetch(`/auth/check_username?username=${encodeURIComponent(username)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const feedback = document.getElementById('username-feedback');
+                    if (data.valid) {
+                        feedback.textContent = '✓ Username is available';
+                        feedback.className = 'form-text text-success';
+                    } else {
+                        feedback.textContent = '✗ ' + data.message;
+                        feedback.className = 'form-text text-danger';
+                    }
+                });
+        }
+    });
+    
+    // Email validation
+    emailInput.addEventListener('blur', function() {
+        const email = this.value;
+        if (email.length > 0) {
+            fetch(`/auth/check_email?email=${encodeURIComponent(email)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const feedback = document.getElementById('email-feedback');
+                    if (data.valid) {
+                        feedback.textContent = '✓ Email is available';
+                        feedback.className = 'form-text text-success';
+                    } else {
+                        feedback.textContent = '✗ ' + data.message;
+                        feedback.className = 'form-text text-danger';
+                    }
+                });
+        }
+    });
+    
+    // Password strength validation
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        if (password.length > 0) {
+            fetch(`/auth/check_password_strength?password=${encodeURIComponent(password)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const bar = document.getElementById('password-strength-bar');
+                    const text = document.getElementById('password-strength-text');
+                    
+                    let width = data.score * 20; // Convert to percentage
+                    let color = 'bg-danger';
+                    let textColor = 'text-danger';
+                    let strengthText = 'Weak';
+                    
+                    if (data.level === 'moderate') {
+                        color = 'bg-warning';
+                        textColor = 'text-warning';
+                        strengthText = 'Moderate';
+                    } else if (data.level === 'strong') {
+                        color = 'bg-success';
+                        textColor = 'text-success';
+                        strengthText = 'Strong';
+                    }
+                    
+                    bar.style.width = width + '%';
+                    bar.className = `progress-bar ${color}`;
+                    text.textContent = `Password Strength: ${strengthText}`;
+                    text.className = `form-text ${textColor}`;
+                });
+        } else {
+            document.getElementById('password-strength-bar').style.width = '0%';
+            document.getElementById('password-strength-text').textContent = '';
+        }
+    });
+    
+    // Password confirmation validation
+    confirmPasswordInput.addEventListener('input', function() {
+        const password = passwordInput.value;
+        const confirmPassword = this.value;
+        const feedback = document.getElementById('password-match-feedback');
+        
+        if (confirmPassword.length > 0) {
+            if (password === confirmPassword) {
+                feedback.textContent = '✓ Passwords match';
+                feedback.className = 'form-text text-success';
+            } else {
+                feedback.textContent = '✗ Passwords do not match';
+                feedback.className = 'form-text text-danger';
+            }
+        } else {
+            feedback.textContent = '';
+            feedback.className = 'form-text';
+        }
+    });
+});
+</script>
+{% endblock %}

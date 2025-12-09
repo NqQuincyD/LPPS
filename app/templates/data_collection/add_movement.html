@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Add Train Movement - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Add Train Movement Data</h1>
+                    <p class="text-muted">Enter data from monthly HQ train graphs</p>
+                </div>
+                <a href="{{ url_for('data_collection.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Data Collection
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-train me-2"></i>Train Movement Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Basic Train Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-1"></i>Basic Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="train_number" class="form-label">Train Number *</label>
+                                <input type="text" class="form-control" id="train_number" name="train_number" 
+                                       placeholder="e.g., 1234" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="locomotive_number" class="form-label">Locomotive Number *</label>
+                                <input type="text" class="form-control" id="locomotive_number" name="locomotive_number" 
+                                       placeholder="e.g., L001" required>
+                            </div>
+                        </div>
+
+                        <!-- Station Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Route Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="departure_station" class="form-label">Departure Station *</label>
+                                <input type="text" class="form-control" id="departure_station" name="departure_station" 
+                                       placeholder="e.g., Harare Central" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="arrival_station" class="form-label">Arrival Station *</label>
+                                <input type="text" class="form-control" id="arrival_station" name="arrival_station" 
+                                       placeholder="e.g., Bulawayo" required>
+                            </div>
+                        </div>
+
+                        <!-- Time Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-clock me-1"></i>Time Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="departure_date" class="form-label">Departure Date *</label>
+                                <input type="date" class="form-control" id="departure_date" name="departure_date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="departure_time" class="form-label">Departure Time *</label>
+                                <input type="time" class="form-control" id="departure_time" name="departure_time" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="arrival_date" class="form-label">Arrival Date *</label>
+                                <input type="date" class="form-control" id="arrival_date" name="arrival_date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="arrival_time" class="form-label">Arrival Time *</label>
+                                <input type="time" class="form-control" id="arrival_time" name="arrival_time" required>
+                            </div>
+                        </div>
+
+                        <!-- Load and Capacity -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-weight-hanging me-1"></i>Load & Capacity Information
+                                </h6>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="load_tons" class="form-label">Load (tons) *</label>
+                                <input type="number" step="0.1" class="form-control" id="load_tons" name="load_tons" 
+                                       placeholder="0.0" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="wagons_count" class="form-label">Number of Wagons *</label>
+                                <input type="number" class="form-control" id="wagons_count" name="wagons_count" 
+                                       placeholder="0" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="axles_count" class="form-label">Number of Axles *</label>
+                                <input type="number" class="form-control" id="axles_count" name="axles_count" 
+                                       placeholder="0" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="net_weight" class="form-label">Net Weight (tons)</label>
+                                <input type="number" step="0.1" class="form-control" id="net_weight" name="net_weight" 
+                                       placeholder="0.0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="distance_km" class="form-label">Distance (km) *</label>
+                                <input type="number" step="0.1" class="form-control" id="distance_km" name="distance_km" 
+                                       placeholder="0.0" required>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-cog me-1"></i>Additional Information
+                                </h6>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="route_type" class="form-label">Route Type</label>
+                                <select class="form-select" id="route_type" name="route_type">
+                                    <option value="">Select Type</option>
+                                    <option value="Passenger">Passenger</option>
+                                    <option value="Freight">Freight</option>
+                                    <option value="Mixed">Mixed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="service_type" class="form-label">Service Type</label>
+                                <select class="form-select" id="service_type" name="service_type">
+                                    <option value="">Select Type</option>
+                                    <option value="Express">Express</option>
+                                    <option value="Local">Local</option>
+                                    <option value="Goods">Goods</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="Active">Active</option>
+                                    <option value="Delayed">Delayed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Graph Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-chart-line me-1"></i>Graph Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="graph_month" class="form-label">Graph Month *</label>
+                                <select class="form-select" id="graph_month" name="graph_month" required>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="graph_year" class="form-label">Graph Year *</label>
+                                <input type="number" class="form-control" id="graph_year" name="graph_year" 
+                                       value="{{ current_year }}" min="2020" max="2030" required>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('data_collection.index') }}" class="btn btn-secondary">
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>Save Movement Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Panel -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-question-circle me-2"></i>Data Collection Guide
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">Monthly HQ Graph Data</h6>
+                    <p class="small text-muted mb-3">
+                        Collect this data from the monthly train graphs at HQ headquarters.
+                    </p>
+                    
+                    <h6 class="text-primary">Required Information:</h6>
+                    <ul class="small text-muted">
+                        <li><strong>Train Number:</strong> Unique identifier from graph</li>
+                        <li><strong>Locomotive Number:</strong> Engine identification</li>
+                        <li><strong>Stations:</strong> Departure and arrival points</li>
+                        <li><strong>Times:</strong> Exact departure and arrival times</li>
+                        <li><strong>Load:</strong> Total weight in tons</li>
+                        <li><strong>Wagons:</strong> Number of wagons attached</li>
+                        <li><strong>Distance:</strong> Route distance in kilometers</li>
+                    </ul>
+
+                    <h6 class="text-primary">Tips:</h6>
+                    <ul class="small text-muted">
+                        <li>Double-check all numbers from the graph</li>
+                        <li>Ensure times are accurate</li>
+                        <li>Verify station names are correct</li>
+                        <li>Check load calculations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set default date to today
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('departure_date').value = today;
+    document.getElementById('arrival_date').value = today;
+    
+    // Set current month as default
+    const currentMonth = new Date().getMonth() + 1;
+    document.getElementById('graph_month').value = currentMonth;
+});
+
+// Auto-calculate axles (assuming 2 axles per wagon)
+document.getElementById('wagons_count').addEventListener('input', function() {
+    const wagons = parseInt(this.value) || 0;
+    document.getElementById('axles_count').value = wagons * 2;
+});
+</script>
+{% endblock %}

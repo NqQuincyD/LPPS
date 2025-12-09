@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Train Movement - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Edit Train Movement Data</h1>
+                    <p class="text-muted">Update data from monthly HQ train graphs</p>
+                </div>
+                <a href="{{ url_for('data_collection.monthly_data', year=movement.graph_year, month=movement.graph_month) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Monthly Data
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Movement Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Basic Train Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-1"></i>Basic Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="train_number" class="form-label">Train Number *</label>
+                                <input type="text" class="form-control" id="train_number" name="train_number" 
+                                       value="{{ movement.train_number }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="locomotive_number" class="form-label">Locomotive Number *</label>
+                                <input type="text" class="form-control" id="locomotive_number" name="locomotive_number" 
+                                       value="{{ movement.locomotive_number }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Station Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Route Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="departure_station" class="form-label">Departure Station *</label>
+                                <input type="text" class="form-control" id="departure_station" name="departure_station" 
+                                       value="{{ movement.departure_station }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="arrival_station" class="form-label">Arrival Station *</label>
+                                <input type="text" class="form-control" id="arrival_station" name="arrival_station" 
+                                       value="{{ movement.arrival_station }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Time Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-clock me-1"></i>Time Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="departure_date" class="form-label">Departure Date *</label>
+                                <input type="date" class="form-control" id="departure_date" name="departure_date" 
+                                       value="{{ movement.departure_time.strftime('%Y-%m-%d') if movement.departure_time }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="departure_time" class="form-label">Departure Time *</label>
+                                <input type="time" class="form-control" id="departure_time" name="departure_time" 
+                                       value="{{ movement.departure_time.strftime('%H:%M') if movement.departure_time }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="arrival_date" class="form-label">Arrival Date *</label>
+                                <input type="date" class="form-control" id="arrival_date" name="arrival_date" 
+                                       value="{{ movement.arrival_time.strftime('%Y-%m-%d') if movement.arrival_time }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="arrival_time" class="form-label">Arrival Time *</label>
+                                <input type="time" class="form-control" id="arrival_time" name="arrival_time" 
+                                       value="{{ movement.arrival_time.strftime('%H:%M') if movement.arrival_time }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Load and Capacity -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-weight-hanging me-1"></i>Load & Capacity Information
+                                </h6>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="load_tons" class="form-label">Load (tons) *</label>
+                                <input type="number" step="0.1" class="form-control" id="load_tons" name="load_tons" 
+                                       value="{{ movement.load_tons }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="wagons_count" class="form-label">Number of Wagons *</label>
+                                <input type="number" class="form-control" id="wagons_count" name="wagons_count" 
+                                       value="{{ movement.wagons_count }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="axles_count" class="form-label">Number of Axles *</label>
+                                <input type="number" class="form-control" id="axles_count" name="axles_count" 
+                                       value="{{ movement.axles_count }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="net_weight" class="form-label">Net Weight (tons)</label>
+                                <input type="number" step="0.1" class="form-control" id="net_weight" name="net_weight" 
+                                       value="{{ movement.net_weight or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="distance_km" class="form-label">Distance (km) *</label>
+                                <input type="number" step="0.1" class="form-control" id="distance_km" name="distance_km" 
+                                       value="{{ movement.distance_km }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-cog me-1"></i>Additional Information
+                                </h6>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="route_type" class="form-label">Route Type</label>
+                                <select class="form-select" id="route_type" name="route_type">
+                                    <option value="">Select Type</option>
+                                    <option value="Passenger" {{ 'selected' if movement.route_type == 'Passenger' }}>Passenger</option>
+                                    <option value="Freight" {{ 'selected' if movement.route_type == 'Freight' }}>Freight</option>
+                                    <option value="Mixed" {{ 'selected' if movement.route_type == 'Mixed' }}>Mixed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="service_type" class="form-label">Service Type</label>
+                                <select class="form-select" id="service_type" name="service_type">
+                                    <option value="">Select Type</option>
+                                    <option value="Express" {{ 'selected' if movement.service_type == 'Express' }}>Express</option>
+                                    <option value="Local" {{ 'selected' if movement.service_type == 'Local' }}>Local</option>
+                                    <option value="Goods" {{ 'selected' if movement.service_type == 'Goods' }}>Goods</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="Active" {{ 'selected' if movement.status == 'Active' }}>Active</option>
+                                    <option value="Delayed" {{ 'selected' if movement.status == 'Delayed' }}>Delayed</option>
+                                    <option value="Cancelled" {{ 'selected' if movement.status == 'Cancelled' }}>Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Graph Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-chart-line me-1"></i>Graph Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="graph_month" class="form-label">Graph Month *</label>
+                                <select class="form-select" id="graph_month" name="graph_month" required>
+                                    <option value="1" {{ 'selected' if movement.graph_month == 1 }}>January</option>
+                                    <option value="2" {{ 'selected' if movement.graph_month == 2 }}>February</option>
+                                    <option value="3" {{ 'selected' if movement.graph_month == 3 }}>March</option>
+                                    <option value="4" {{ 'selected' if movement.graph_month == 4 }}>April</option>
+                                    <option value="5" {{ 'selected' if movement.graph_month == 5 }}>May</option>
+                                    <option value="6" {{ 'selected' if movement.graph_month == 6 }}>June</option>
+                                    <option value="7" {{ 'selected' if movement.graph_month == 7 }}>July</option>
+                                    <option value="8" {{ 'selected' if movement.graph_month == 8 }}>August</option>
+                                    <option value="9" {{ 'selected' if movement.graph_month == 9 }}>September</option>
+                                    <option value="10" {{ 'selected' if movement.graph_month == 10 }}>October</option>
+                                    <option value="11" {{ 'selected' if movement.graph_month == 11 }}>November</option>
+                                    <option value="12" {{ 'selected' if movement.graph_month == 12 }}>December</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="graph_year" class="form-label">Graph Year *</label>
+                                <input type="number" class="form-control" id="graph_year" name="graph_year" 
+                                       value="{{ movement.graph_year }}" min="2020" max="2030" required>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('data_collection.monthly_data', year=movement.graph_year, month=movement.graph_month) }}" class="btn btn-secondary">
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>Update Movement Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Data Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Current Data Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-primary">Train Details</h6>
+                        <p class="mb-1"><strong>Train:</strong> {{ movement.train_number }}</p>
+                        <p class="mb-1"><strong>Locomotive:</strong> {{ movement.locomotive_number }}</p>
+                        <p class="mb-1"><strong>Route:</strong> {{ movement.departure_station }} → {{ movement.arrival_station }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">Performance</h6>
+                        {% if movement.journey_duration_hours %}
+                        <p class="mb-1"><strong>Duration:</strong> {{ "%.1f"|format(movement.journey_duration_hours) }} hours</p>
+                        {% endif %}
+                        {% if movement.average_speed_kmh %}
+                        <p class="mb-1"><strong>Avg Speed:</strong> {{ "%.1f"|format(movement.average_speed_kmh) }} km/h</p>
+                        {% endif %}
+                        {% if movement.load_efficiency %}
+                        <p class="mb-1"><strong>Load Efficiency:</strong> {{ "%.1f"|format(movement.load_efficiency) }}%</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">Load Information</h6>
+                        <p class="mb-1"><strong>Load:</strong> {{ "%.1f"|format(movement.load_tons) }} tons</p>
+                        <p class="mb-1"><strong>Wagons:</strong> {{ movement.wagons_count }}</p>
+                        <p class="mb-1"><strong>Distance:</strong> {{ "%.1f"|format(movement.distance_km) }} km</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">Collection Info</h6>
+                        <p class="mb-1"><strong>Graph:</strong> {{ movement.graph_month|month_name }} {{ movement.graph_year }}</p>
+                        <p class="mb-1"><strong>Collected:</strong> {{ movement.data_collected_date.strftime('%m/%d/%Y') if movement.data_collected_date }}</p>
+                        <p class="mb-1"><strong>By:</strong> {{ movement.collected_by or 'Unknown' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-calculate axles (assuming 2 axles per wagon)
+document.getElementById('wagons_count').addEventListener('input', function() {
+    const wagons = parseInt(this.value) || 0;
+    document.getElementById('axles_count').value = wagons * 2;
+});
+</script>
+{% endblock %}

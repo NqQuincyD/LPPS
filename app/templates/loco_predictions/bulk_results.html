@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Prediction Results - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">Bulk Prediction Results</h2>
+        <p class="text-muted">{{ results|length }} locomotives analyzed • {{ prediction_type.replace('_', ' ').title() }} • Annual Forecast</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('loco_predictions.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>New Predictions
+        </a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <div class="display-6 text-primary mb-2">{{ results|length }}</div>
+                <h6 class="text-muted">Total Predictions</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <div class="display-6 text-success mb-2">
+                    {{ results | selectattr('prediction.risk_level', 'equalto', 'Low') | list | length }}
+                </div>
+                <h6 class="text-muted">Low Risk</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <div class="display-6 text-warning mb-2">
+                    {{ results | selectattr('prediction.risk_level', 'equalto', 'Medium') | list | length }}
+                </div>
+                <h6 class="text-muted">Medium Risk</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <div class="display-6 text-danger mb-2">
+                    {{ results | selectattr('prediction.risk_level', 'equalto', 'High') | list | length }}
+                </div>
+                <h6 class="text-muted">High Risk</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Errors Section -->
+{% if errors %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h6 class="alert-heading">
+                <i class="fas fa-exclamation-triangle me-2"></i>Prediction Errors
+            </h6>
+            <ul class="mb-0">
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Results Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">Prediction Results</h5>
+                <small class="text-muted">Detailed analysis for each locomotive</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Locomotive</th>
+                                <th>Model</th>
+                                <th>Age</th>
+                                <th>Operating Hours</th>
+                                <th>Risk Score</th>
+                                <th>Risk Level</th>
+                                <th>Reliability</th>
+                                {% if prediction_type == 'all' or prediction_type == 'availability_days' %}
+                                <th>Availability Days</th>
+                                {% endif %}
+                                {% if prediction_type == 'all' or prediction_type == 'distance_travelled' %}
+                                <th>Distance (km)</th>
+                                {% endif %}
+                                {% if prediction_type == 'all' or prediction_type == 'total_failures' %}
+                                <th>Failures</th>
+                                {% endif %}
+                                {% if prediction_type == 'all' or prediction_type == 'fuel_efficiency' %}
+                                <th>Fuel Efficiency</th>
+                                {% endif %}
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>
+                                    <strong>{{ result.locomotive_id }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'primary' if result.model == 'DE10' else 'info' }}">
+                                        {{ result.model }}
+                                    </span>
+                                </td>
+                                <td>{{ result.age }} years</td>
+                                <td>{{ "{:,}".format(result.operating_hours) }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress me-2" style="width: 60px; height: 20px;">
+                                            <div class="progress-bar bg-{{ 'danger' if result.prediction.risk_level == 'High' else 'warning' if result.prediction.risk_level == 'Medium' else 'success' }}" 
+                                                 style="width: {{ result.prediction.risk_score }}%"></div>
+                                        </div>
+                                        <span class="fw-bold">{{ "%.1f"|format(result.prediction.risk_score) }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if result.prediction.risk_level == 'High' else 'warning' if result.prediction.risk_level == 'Medium' else 'success' }}">
+                                        {{ result.prediction.risk_level }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if result.prediction.reliability_category == 'High' else 'warning' if result.prediction.reliability_category == 'Medium' else 'danger' }}">
+                                        {{ result.prediction.reliability_category }}
+                                    </span>
+                                </td>
+                                {% if prediction_type == 'all' or prediction_type == 'availability_days' %}
+                                <td>
+                                    {% if result.prediction.predictions.availability_days %}
+                                        {{ result.prediction.predictions.availability_days }} days
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                {% if prediction_type == 'all' or prediction_type == 'distance_travelled' %}
+                                <td>
+                                    {% if result.prediction.predictions.distance_travelled %}
+                                        {{ "{:,}".format(result.prediction.predictions.distance_travelled) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                {% if prediction_type == 'all' or prediction_type == 'total_failures' %}
+                                <td>
+                                    {% if result.prediction.predictions.total_failures %}
+                                        {{ result.prediction.predictions.total_failures }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                {% if prediction_type == 'all' or prediction_type == 'fuel_efficiency' %}
+                                <td>
+                                    {% if result.prediction.predictions.fuel_efficiency %}
+                                        {{ result.prediction.predictions.fuel_efficiency }}%
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                <td>
+                                    {% if result.created_at %}
+                                        {{ result.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result.prediction_id %}
+                                    <a href="{{ url_for('loco_predictions.view_result', id=result.prediction_id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+            <div>
+                <small class="text-muted">Results generated on {{ generated_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+            </div>
+            <div>
+                <button onclick="exportToCSV()" class="btn btn-outline-success me-2">
+                    <i class="fas fa-download me-1"></i>Export CSV
+                </button>
+                <button onclick="window.print()" class="btn btn-outline-secondary">
+                    <i class="fas fa-print me-1"></i>Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Export to CSV functionality
+function exportToCSV() {
+    const results = {{ results | tojson }};
+    const predictionType = '{{ prediction_type }}';
+    const predictionPeriod = {{ prediction_period }};
+    
+    // Create CSV headers
+    let csvContent = 'Locomotive ID,Model,Age,Operating Hours,Risk Score,Risk Level,Reliability';
+    
+    // Add prediction-specific headers
+    if (predictionType === 'all' || predictionType === 'availability_days') {
+        csvContent += ',Availability Days';
+    }
+    if (predictionType === 'all' || predictionType === 'distance_travelled') {
+        csvContent += ',Distance Travelled (km)';
+    }
+    if (predictionType === 'all' || predictionType === 'total_failures') {
+        csvContent += ',Total Failures';
+    }
+    if (predictionType === 'all' || predictionType === 'fuel_efficiency') {
+        csvContent += ',Fuel Efficiency (%)';
+    }
+    csvContent += '\n';
+    
+    // Add data rows
+    results.forEach(result => {
+        let row = `${result.locomotive_id},${result.model},${result.age},${result.operating_hours},${result.prediction.risk_score},${result.prediction.risk_level},${result.prediction.reliability_category}`;
+        
+        if (predictionType === 'all' || predictionType === 'availability_days') {
+            row += `,${result.prediction.predictions.availability_days || ''}`;
+        }
+        if (predictionType === 'all' || predictionType === 'distance_travelled') {
+            row += `,${result.prediction.predictions.distance_travelled || ''}`;
+        }
+        if (predictionType === 'all' || predictionType === 'total_failures') {
+            row += `,${result.prediction.predictions.total_failures || ''}`;
+        }
+        if (predictionType === 'all' || predictionType === 'fuel_efficiency') {
+            row += `,${result.prediction.predictions.fuel_efficiency || ''}`;
+        }
+        
+        csvContent += row + '\n';
+    });
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `bulk_predictions_${predictionType}_${predictionPeriod}days.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Print optimization
+window.addEventListener('beforeprint', function() {
+    const exportButtons = document.querySelector('.d-flex.justify-content-between');
+    if (exportButtons) {
+        exportButtons.style.display = 'none';
+    }
+});
+
+window.addEventListener('afterprint', function() {
+    const exportButtons = document.querySelector('.d-flex.justify-content-between');
+    if (exportButtons) {
+        exportButtons.style.display = 'flex';
+    }
+});
+</script>
+{% endblock %}

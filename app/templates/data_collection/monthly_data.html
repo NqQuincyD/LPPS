@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Data - {{ month|month_name }} {{ year }} - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">{{ month|month_name }} {{ year }} Data</h1>
+                    <p class="text-muted">Train Movement Data from HQ Graphs</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('data_collection.add_movement') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-plus me-1"></i>Add Movement
+                    </a>
+                    <a href="{{ url_for('data_collection.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Data Collection
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Summary -->
+    {% if monthly_summary %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Monthly Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-primary">{{ monthly_summary.total_movements }}</h3>
+                                <p class="text-muted mb-0">Total Movements</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-success">{{ "%.1f"|format(monthly_summary.total_distance) }} km</h3>
+                                <p class="text-muted mb-0">Total Distance</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-warning">{{ "%.1f"|format(monthly_summary.total_load) }} tons</h3>
+                                <p class="text-muted mb-0">Total Load</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-info">{{ "%.1f"|format(monthly_summary.average_speed) }} km/h</h3>
+                                <p class="text-muted mb-0">Average Speed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Movements Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Train Movements</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="exportData()">
+                                <i class="fas fa-download me-1"></i>Export
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="printData()">
+                                <i class="fas fa-print me-1"></i>Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if movements %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="movementsTable">
+                            <thead>
+                                <tr>
+                                    <th>Train #</th>
+                                    <th>Locomotive</th>
+                                    <th>Route</th>
+                                    <th>Departure</th>
+                                    <th>Arrival</th>
+                                    <th>Load (tons)</th>
+                                    <th>Wagons</th>
+                                    <th>Distance</th>
+                                    <th>Duration</th>
+                                    <th>Speed</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movement in movements %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ movement.train_number }}</strong>
+                                    </td>
+                                    <td>{{ movement.locomotive_number }}</td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ movement.departure_station }} → {{ movement.arrival_station }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small>{{ movement.departure_time.strftime('%m/%d %H:%M') if movement.departure_time }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ movement.arrival_time.strftime('%m/%d %H:%M') if movement.arrival_time }}</small>
+                                    </td>
+                                    <td>{{ "%.1f"|format(movement.load_tons) }}</td>
+                                    <td>{{ movement.wagons_count }}</td>
+                                    <td>{{ "%.1f"|format(movement.distance_km) }} km</td>
+                                    <td>
+                                        {% if movement.journey_duration_hours %}
+                                            {{ "%.1f"|format(movement.journey_duration_hours) }}h
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if movement.average_speed_kmh %}
+                                            {{ "%.1f"|format(movement.average_speed_kmh) }} km/h
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if movement.status == 'Active' else 'warning' if movement.status == 'Delayed' else 'danger' }}">
+                                            {{ movement.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('data_collection.edit_movement', id=movement.id) }}" 
+                                               class="btn btn-outline-primary btn-sm" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ url_for('data_collection.delete_movement', id=movement.id) }}" 
+                                               class="btn btn-outline-danger btn-sm" title="Delete"
+                                               onclick="return confirm('Are you sure you want to delete this movement?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-train fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No movements recorded for {{ month|month_name }} {{ year }}</h5>
+                        <p class="text-muted">Start collecting data from the monthly HQ graphs.</p>
+                        <a href="{{ url_for('data_collection.add_movement') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add First Movement
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportData() {
+    // Simple CSV export functionality
+    const table = document.getElementById('movementsTable');
+    if (!table) return;
+    
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = [], cols = rows[i].querySelectorAll('td, th');
+        
+        for (let j = 0; j < cols.length - 1; j++) { // Exclude actions column
+            row.push(cols[j].innerText.replace(/,/g, ';'));
+        }
+        
+        csv.push(row.join(','));
+    }
+    
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'train_movements_{{ year }}_{{ month }}.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function printData() {
+    window.print();
+}
+
+// Add search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('movementsTable');
+    if (table) {
+        // Add search input
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'form-control mb-3';
+        searchInput.placeholder = 'Search movements...';
+        searchInput.style.maxWidth = '300px';
+        
+        table.parentNode.insertBefore(searchInput, table);
+        
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

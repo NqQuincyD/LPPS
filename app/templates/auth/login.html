@@ -1,0 +1,48 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Login - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <i class="fas fa-train"></i>
+        <h3>LPPS</h3>
+        <p>Locomotive Performance Prediction System</p>
+    </div>
+    
+    <div class="auth-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="username_or_email" class="form-label">Username or Email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" id="username_or_email" name="username_or_email" required>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </button>
+            </div>
+        </form>
+        
+        <div class="text-center mt-4">
+            <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-decoration-none">Register here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

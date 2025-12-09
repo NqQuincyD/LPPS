@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Locomotive - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">Edit 2024 Fleet Locomotive</h2>
+        <p class="text-muted">Update locomotive details in the 2024 fleet</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('locomotives.index') }}" class="btn" style="background-color: white; color: #6c757d; border: 1px solid #6c757d;">
+            <i class="fas fa-arrow-left me-2"></i>Back to Locomotives
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <!-- Fleet Information -->
+                <div class="alert alert-info mb-4">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>2024 Fleet Information
+                    </h6>
+                    <p class="mb-2">The 2024 locomotive fleet consists of two main types:</p>
+                    <ul class="mb-0">
+                        <li><strong>NRZ Fleet (DE10):</strong> Locomotive numbers 1002-2109 series</li>
+                        <li><strong>Hired Fleet (DE11):</strong> Locomotive numbers 30000+ series</li>
+                    </ul>
+                </div>
+                
+                <form method="POST" id="locomotiveForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="locomotive_id" class="form-label">Locomotive ID *</label>
+                            <input type="text" class="form-control" id="locomotive_id" name="locomotive_id" 
+                                   value="{{ locomotive.locomotive_id }}" required>
+                            <small class="form-text text-muted">Enter the locomotive number (e.g., 1002 for NRZ Fleet, 36460 for Hired Fleet)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="model" class="form-label">Model & Fleet Type *</label>
+                            <select class="form-select" id="model" name="model" required>
+                                <option value="">Select Model & Fleet</option>
+                                <option value="DE10" {{ 'selected' if locomotive.model == 'DE10' else '' }}>DE10 (NRZ Fleet)</option>
+                                <option value="DE11" {{ 'selected' if locomotive.model == 'DE11' else '' }}>DE11 (Hired Fleet)</option>
+                            </select>
+                            <small class="form-text text-muted">DE10 for NRZ Fleet locomotives, DE11 for Hired Fleet locomotives</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="manufacturing_year" class="form-label">Manufacturing Year *</label>
+                            <input type="number" class="form-control" id="manufacturing_year" name="manufacturing_year" 
+                                   value="{{ locomotive.manufacturing_year }}" min="1990" max="2024" required>
+                            <small class="form-text text-muted">Year the locomotive was manufactured (1990-2024)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="operating_hours" class="form-label">Operating Hours</label>
+                            <input type="number" class="form-control" id="operating_hours" name="operating_hours" 
+                                   value="{{ locomotive.operating_hours }}" min="0">
+                            <small class="form-text text-muted">Total operating hours (0 for new locomotives)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="last_maintenance" class="form-label">Last Maintenance</label>
+                            <input type="date" class="form-control" id="last_maintenance" name="last_maintenance" 
+                                   value="{{ locomotive.last_maintenance.strftime('%Y-%m-%d') if locomotive.last_maintenance else '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="current_status" class="form-label">Current Status</label>
+                            <select class="form-select" id="current_status" name="current_status">
+                                <option value="active" {{ 'selected' if locomotive.current_status == 'active' else '' }}>Active</option>
+                                <option value="maintenance" {{ 'selected' if locomotive.current_status == 'maintenance' else '' }}>Under Maintenance</option>
+                                <option value="repair" {{ 'selected' if locomotive.current_status == 'repair' else '' }}>Repair Required</option>
+                                <option value="retired" {{ 'selected' if locomotive.current_status == 'retired' else '' }}>Retired</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('locomotives.index') }}" class="btn" style="background-color: white; color: #6c757d; border: 1px solid #6c757d;">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+                            <i class="fas fa-save me-2"></i>Update Locomotive
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    document.getElementById('locomotiveForm').addEventListener('submit', function(e) {
+        const locomotiveId = document.getElementById('locomotive_id').value;
+        const model = document.getElementById('model').value;
+        const year = document.getElementById('manufacturing_year').value;
+        
+        if (!locomotiveId || !model || !year) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        // Validate locomotive ID format
+        const locoIdNum = parseInt(locomotiveId);
+        if (isNaN(locoIdNum)) {
+            e.preventDefault();
+            alert('Locomotive ID must be a valid number.');
+            return;
+        }
+        
+        // Validate locomotive ID range based on model
+        if (model === 'DE10' && (locoIdNum < 1000 || locoIdNum > 9999)) {
+            e.preventDefault();
+            alert('NRZ Fleet (DE10) locomotive IDs should be in the range 1000-9999.');
+            return;
+        }
+        
+        if (model === 'DE11' && (locoIdNum < 30000 || locoIdNum > 99999)) {
+            e.preventDefault();
+            alert('Hired Fleet (DE11) locomotive IDs should be in the range 30000-99999.');
+            return;
+        }
+        
+        // Validate year
+        const currentYear = new Date().getFullYear();
+        if (parseInt(year) > currentYear) {
+            e.preventDefault();
+            alert('Manufacturing year cannot be in the future.');
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

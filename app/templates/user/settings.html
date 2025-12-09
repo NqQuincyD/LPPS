@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">Settings</h2>
+        <p class="text-muted">Manage your application preferences and notifications</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Settings Navigation -->
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Settings Menu</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('user.notification_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-bell me-2"></i>Notifications
+                </a>
+                <a href="{{ url_for('user.preferences') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-cog me-2"></i>Preferences
+                </a>
+                <a href="{{ url_for('user.profile') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user me-2"></i>Profile
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Content -->
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog me-2"></i>Application Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-bell fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Notification Settings</h5>
+                                <p class="card-text">Configure how you receive notifications about locomotives, maintenance, and system updates.</p>
+                                <a href="{{ url_for('user.notification_settings') }}" class="btn btn-primary">
+                                    <i class="fas fa-cog me-2"></i>Configure
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-palette fa-3x text-success mb-3"></i>
+                                <h5 class="card-title">Preferences</h5>
+                                <p class="card-text">Customize your experience with theme, language, timezone, and display preferences.</p>
+                                <a href="{{ url_for('user.preferences') }}" class="btn btn-success">
+                                    <i class="fas fa-cog me-2"></i>Configure
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-edit fa-3x text-info mb-3"></i>
+                                <h5 class="card-title">Profile Management</h5>
+                                <p class="card-text">Update your personal information, change password, and manage your account details.</p>
+                                <a href="{{ url_for('user.profile') }}" class="btn btn-info">
+                                    <i class="fas fa-user me-2"></i>Manage Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-download fa-3x text-warning mb-3"></i>
+                                <h5 class="card-title">Data Export</h5>
+                                <p class="card-text">Export your locomotives, predictions, and maintenance data for backup or analysis.</p>
+                                <a href="{{ url_for('reports.index') }}" class="btn btn-warning">
+                                    <i class="fas fa-file-alt me-2"></i>Export Data
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Information -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>System Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Application Details</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>System:</strong> NRZ Locomotive Performance Prediction System</li>
+                            <li><strong>Version:</strong> 1.0.0</li>
+                            <li><strong>User Role:</strong> {{ current_user.role.title() if current_user.role else 'User' }}</li>
+                            <li><strong>Account Status:</strong> 
+                                <span class="badge bg-success">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Account Information</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Username:</strong> {{ current_user.username }}</li>
+                            <li><strong>Email:</strong> {{ current_user.email }}</li>
+                            <li><strong>Member Since:</strong> {{ current_user.created_at.strftime('%B %Y') if current_user.created_at else 'Unknown' }}</li>
+                            <li><strong>Last Login:</strong> {{ current_user.last_login.strftime('%Y-%m-%d %H:%M') if current_user.last_login else 'Never' }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

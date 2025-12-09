@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report_data.title }} - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">{{ report_data.title }}</h2>
+        <p class="text-muted">Generated on {{ report_data.generated_at }}</p>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group">
+            <a href="{{ url_for('reports.print_report_by_id', id=report_data.get('id', 0)) }}?type={{ report_type }}" class="btn btn-outline-secondary">
+                <i class="fas fa-print me-2"></i>Print
+            </a>
+            <a href="{{ url_for('reports.download_report_by_id', id=report_data.get('id', 0)) }}?type={{ report_type }}&format=csv" class="btn btn-outline-success">
+                <i class="fas fa-download me-2"></i>Download
+            </a>
+            <a href="{{ url_for('reports.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Reports
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Assessment Report -->
+{% if report_type == 'risk_assessment' %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Risk Distribution Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <canvas id="riskChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-1">{{ report_data.high_risk_count }}</h3>
+                                        <p class="mb-0">High Risk</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-1">{{ report_data.medium_risk_count }}</h3>
+                                        <p class="mb-0">Medium Risk</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-1">{{ report_data.low_risk_count }}</h3>
+                                        <p class="mb-0">Low Risk</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- High Risk Locomotives Table -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Top Risk Locomotives</h5>
+                <small class="text-muted">Locomotives requiring immediate attention</small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Locomotive ID</th>
+                                <th>Model</th>
+                                <th>Age</th>
+                                <th>Operating Hours</th>
+                                <th>Status</th>
+                                <th>Risk Score</th>
+                                <th>Risk Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.risk_data[:20] %}
+                            <tr>
+                                <td><strong>{{ item.locomotive.locomotive_id }}</strong></td>
+                                <td>{{ item.locomotive.model }}</td>
+                                <td>{{ item.age }} years</td>
+                                <td>{{ "{:,}".format(item.operating_hours) }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if item.status == 'active' else 'warning' if item.status == 'maintenance' else 'danger' if item.status == 'repair' else 'secondary' }}">
+                                        {{ item.status.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if item.risk_level == 'High' else 'warning' if item.risk_level == 'Medium' else 'success' }}">
+                                        {{ "%.1f"|format(item.risk_score) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if item.risk_level == 'High' else 'warning' if item.risk_level == 'Medium' else 'success' }}">
+                                        {{ item.risk_level }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Performance Forecast Report -->
+{% if report_type == 'performance_forecast' %}
+{% if report_data.message %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>{{ report_data.message }}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Prediction Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h3 class="mb-1">{{ report_data.prediction_summary.total_predictions }}</h3>
+                                <p class="mb-0">Total Predictions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h3 class="mb-1">{{ "%.1f"|format(report_data.prediction_summary.avg_risk_score) }}</h3>
+                                <p class="mb-0">Avg Risk Score</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h3 class="mb-1">{{ report_data.prediction_summary.risk_levels.Low }}</h3>
+                                <p class="mb-0">Low Risk</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h3 class="mb-1">{{ report_data.prediction_summary.risk_levels.Medium }}</h3>
+                                <p class="mb-0">Medium Risk</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Predictions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Recent Performance Predictions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Locomotive</th>
+                                <th>Prediction Type</th>
+                                <th>Risk Level</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prediction in report_data.predictions %}
+                            <tr>
+                                <td>
+                                    <strong>{{ prediction.locomotive.locomotive_id }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ prediction.locomotive.model }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ prediction.prediction_type or 'All' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if prediction.risk_level == 'High' else 'warning' if prediction.risk_level == 'Medium' else 'success' }}">
+                                        {{ prediction.risk_level }}
+                                    </span>
+                                </td>
+                                <td>{{ prediction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('loco_predictions.view_result', id=prediction.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Maintenance Planning Report -->
+{% if report_type == 'maintenance_planning' %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Maintenance Priority Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <h3 class="mb-1">{{ report_data.urgent_count }}</h3>
+                                <p class="mb-0">Urgent Maintenance</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h3 class="mb-1">{{ report_data.scheduled_count }}</h3>
+                                <p class="mb-0">Scheduled Maintenance</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h3 class="mb-1">{{ report_data.routine_count }}</h3>
+                                <p class="mb-0">Routine Maintenance</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Urgent Maintenance -->
+{% if report_data.maintenance_plan.urgent %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">🚨 Urgent Maintenance Required</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Locomotive ID</th>
+                                <th>Model</th>
+                                <th>Risk Score</th>
+                                <th>Days Since Maintenance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.maintenance_plan.urgent %}
+                            <tr>
+                                <td><strong>{{ item.locomotive.locomotive_id }}</strong></td>
+                                <td>{{ item.locomotive.model }}</td>
+                                <td>
+                                    <span class="badge bg-danger">{{ "%.1f"|format(item.risk_score) }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if item.days_since_maintenance > 90 else 'warning' }}">
+                                        {{ item.days_since_maintenance }} days
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if item.locomotive.current_status == 'active' else 'warning' if item.locomotive.current_status == 'maintenance' else 'danger' }}">
+                                        {{ item.locomotive.current_status.title() }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if report_type == 'risk_assessment' %}
+// Risk Distribution Chart
+const ctx = document.getElementById('riskChart').getContext('2d');
+const riskChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['High Risk', 'Medium Risk', 'Low Risk'],
+        datasets: [{
+            data: [
+                {{ report_data.risk_distribution.High }},
+                {{ report_data.risk_distribution.Medium }},
+                {{ report_data.risk_distribution.Low }}
+            ],
+            backgroundColor: [
+                '#dc3545',
+                '#ffc107',
+                '#28a745'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            },
+            title: {
+                display: true,
+                text: 'Fleet Risk Distribution',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

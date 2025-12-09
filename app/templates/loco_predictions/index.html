@@ -1,0 +1,608 @@
+{% extends "base.html" %}
+
+{% block title %}Loco Predictions - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">Loco Predictions</h2>
+    </div>
+</div>
+
+<!-- Prediction Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator me-2" style="color: #495057;"></i>Performance Prediction
+                </h5>
+                <small style="color: #6c757d;">Generate forecasts for locomotive performance</small>
+            </div>
+            <div class="card-body">
+                {% if selected_locomotive %}
+                <div class="mb-3" style="background-color: #e7f3ff; border: 1px solid #b3d9ff; padding: 12px; border-radius: 4px;">
+                    <i class="fas fa-info-circle me-2" style="color: #0066cc;"></i>
+                    <strong style="color: #0066cc;">Locomotive Pre-selected:</strong> {{ selected_locomotive.locomotive_id }} ({{ selected_locomotive.model }}) 
+                    - Ready to predict!
+                </div>
+                {% endif %}
+                <form id="predictionForm" method="POST" action="{{ url_for('loco_predictions.predict') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="locomotive_number" class="form-label">Locomotive Number *</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="locomotive_number" name="locomotive_number" 
+                                       placeholder="Enter locomotive number (e.g., 1002)" 
+                                       value="{{ selected_locomotive.locomotive_id if selected_locomotive else '' }}" required>
+                                <button type="button" class="btn btn-outline-secondary" onclick="searchLocomotive()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">Enter the locomotive number from the dataset</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="locomotive_type" class="form-label">Locomotive Type *</label>
+                            <select class="form-select" id="locomotive_type" name="locomotive_type" required>
+                                <option value="">Select locomotive type...</option>
+                                <option value="DE10" {{ 'selected' if selected_locomotive and selected_locomotive.model == 'DE10' else '' }}>DE10 (NRZ Fleet)</option>
+                                <option value="DE11" {{ 'selected' if selected_locomotive and selected_locomotive.model == 'DE11' else '' }}>DE11 (Hired Fleet)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="prediction_type" class="form-label">Predict For *</label>
+                            <select class="form-select" id="prediction_type" name="prediction_type" required>
+                                <option value="">Select prediction type...</option>
+                                <option value="availability_days">Availability Days</option>
+                                <option value="distance_travelled">Distance Travelled</option>
+                                <option value="distance_per_day">Distance per Day</option>
+                                <option value="total_failures">Total Failures</option>
+                                <option value="reliability">Reliability</option>
+                                <option value="fuel_efficiency">Fuel Efficiency</option>
+                                <option value="all">All Performance Metrics</option>
+                            </select>
+                        </div>
+                        
+                               <div class="col-md-6 mb-3">
+                                   <label class="form-label">Forecast Period</label>
+                                   <div class="form-control-plaintext">
+                                       <span class="badge bg-info">12 Months (Annual Forecast)</span>
+                                       <small class="text-muted d-block mt-1">Predictions show expected performance for the next year</small>
+                                   </div>
+                               </div>
+                    </div>
+                    
+                    <!-- Locomotive Details Display -->
+                    <div id="locomotiveDetails" class="row mb-4" style="display: none;">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-1"></i>Locomotive Information
+                            </h6>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-train text-primary mb-2"></i>
+                                    <h6 class="card-title">Model</h6>
+                                    <p class="card-text" id="displayModel">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-calendar text-info mb-2"></i>
+                                    <h6 class="card-title">Age</h6>
+                                    <p class="card-text" id="displayAge">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-clock text-warning mb-2"></i>
+                                    <h6 class="card-title">Operating Hours</h6>
+                                    <p class="card-text" id="displayHours">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-wrench text-success mb-2"></i>
+                                    <h6 class="card-title">Status</h6>
+                                    <p class="card-text" id="displayStatus">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Generate Button -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+                                    <i class="fas fa-calculator me-2"></i>Predict
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Preview Results -->
+<div id="quickPreview" class="row mb-4" style="display: none;">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">Quick Preview</h5>
+                <small class="text-muted">Instant prediction results</small>
+            </div>
+            <div class="card-body">
+                <div id="previewContent">
+                    <!-- Preview content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Predictions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0">Bulk Predictions</h5>
+                <small class="text-muted">Generate predictions for multiple locomotives at once</small>
+            </div>
+            <div class="card-body">
+                <form id="bulkPredictionForm" method="POST" action="{{ url_for('loco_predictions.bulk_predict') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="bulk_locomotive_numbers" class="form-label">Locomotive Numbers *</label>
+                            <textarea class="form-control" id="bulk_locomotive_numbers" name="locomotive_numbers" 
+                                      rows="4" placeholder="Enter locomotive numbers, one per line:&#10;1002&#10;1016&#10;2104&#10;36383" required></textarea>
+                            <small class="form-text text-muted">Enter locomotive numbers from the dataset, one per line (max 20)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="bulk_prediction_type" class="form-label">Predict For *</label>
+                            <select class="form-select" id="bulk_prediction_type" name="prediction_type" required>
+                                <option value="">Select prediction type...</option>
+                                <option value="availability_days">Availability Days</option>
+                                <option value="distance_travelled">Distance Travelled</option>
+                                <option value="distance_per_day">Distance per Day</option>
+                                <option value="total_failures">Total Failures</option>
+                                <option value="reliability">Reliability</option>
+                                <option value="fuel_efficiency">Fuel Efficiency</option>
+                                <option value="all">All Performance Metrics</option>
+                            </select>
+                        </div>
+                    </div>
+                           <div class="row">
+                               <div class="col-md-6 mb-3">
+                                   <label class="form-label">Forecast Period</label>
+                                   <div class="form-control-plaintext">
+                                       <span class="badge bg-info">12 Months (Annual Forecast)</span>
+                                       <small class="text-muted d-block mt-1">Bulk predictions show expected performance for the next year</small>
+                                   </div>
+                               </div>
+                        <div class="col-md-6 mb-3 d-flex align-items-end">
+                            <button type="submit" class="btn" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+                                <i class="fas fa-calculator me-2"></i>Predict
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Predictions -->
+{% if predictions %}
+<div class="row">
+    <div class="col-12">
+        <div class="card" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history me-2" style="color: #495057;"></i>Recent Predictions
+                        </h5>
+                        <small style="color: #6c757d;">Latest generated forecasts</small>
+                    </div>
+                    <button type="button" class="btn btn-sm" style="background-color: white; color: #dc3545; border: 1px solid #dc3545;" onclick="clearAllPredictions()">
+                        <i class="fas fa-trash me-1"></i>Clear All
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" style="border: 1px solid #dee2e6;">
+                        <thead style="background-color: #f8f9fa;">
+                            <tr>
+                                <th style="border-bottom: 2px solid #6c757d; color: #495057;">Locomotive</th>
+                                <th style="border-bottom: 2px solid #6c757d; color: #495057;">Prediction Type</th>
+                                <th style="border-bottom: 2px solid #6c757d; color: #495057;">Period</th>
+                                <th style="border-bottom: 2px solid #6c757d; color: #495057;">Risk Level</th>
+                                <th style="border-bottom: 2px solid #6c757d; color: #495057;">Reliability</th>
+                                <th style="border-bottom: 2px solid #6c757d; color: #495057;">Created</th>
+                                <th style="border-bottom: 2px solid #6c757d; color: #495057;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prediction in predictions %}
+                            <tr>
+                                <td>
+                                    <strong>{{ prediction.locomotive.locomotive_id }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ prediction.locomotive.model }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ prediction.prediction_data | from_json | attr('prediction_type') | default('All') }}
+                                    </span>
+                                </td>
+                                <td>{{ prediction.prediction_period }} days</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if prediction.risk_level == 'High' else 'warning' if prediction.risk_level == 'Medium' else 'success' }}">
+                                        {{ prediction.risk_level }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if prediction.prediction_data | from_json | attr('reliability_category') == 'High' else 'warning' if prediction.prediction_data | from_json | attr('reliability_category') == 'Medium' else 'danger' }}">
+                                        {{ prediction.prediction_data | from_json | attr('reliability_category') | default('Medium') }}
+                                    </span>
+                                </td>
+                                <td>{{ prediction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('loco_predictions.view_result', id=prediction.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Search Results Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Search Locomotives</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Enter locomotive number...">
+                </div>
+                <div id="searchResults">
+                    <!-- Search results will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search locomotive function
+function searchLocomotive() {
+    const modal = new bootstrap.Modal(document.getElementById('searchModal'));
+    modal.show();
+    
+    // Focus on search input
+    setTimeout(() => {
+        document.getElementById('searchInput').focus();
+    }, 500);
+}
+
+// Handle search input
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    if (query.length >= 2) {
+        fetch(`{{ url_for('loco_predictions.search_locomotive') }}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                displaySearchResults(data);
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+            });
+    } else {
+        document.getElementById('searchResults').innerHTML = '';
+    }
+});
+
+// Display search results
+function displaySearchResults(results) {
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (results.length === 0) {
+        resultsDiv.innerHTML = '<p class="text-muted">No locomotives found.</p>';
+        return;
+    }
+    
+    let html = '<div class="list-group">';
+    results.forEach(loco => {
+        html += `
+            <div class="list-group-item list-group-item-action" onclick="selectLocomotive('${loco.locomotive_id}', '${loco.model}')">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${loco.locomotive_id}</h6>
+                    <small>${loco.model}</small>
+                </div>
+                <p class="mb-1">Fleet: ${loco.fleet} | Age: ${loco.age} years | Hours: ${loco.operating_hours.toLocaleString()}</p>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    resultsDiv.innerHTML = html;
+}
+
+// Select locomotive from search results
+function selectLocomotive(locoId, model) {
+    document.getElementById('locomotive_number').value = locoId;
+    document.getElementById('locomotive_type').value = model;
+    
+    // Hide modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('searchModal'));
+    modal.hide();
+    
+    // Load locomotive details
+    loadLocomotiveDetails(locoId);
+}
+
+// Load locomotive details
+function loadLocomotiveDetails(locoId) {
+    // Show the details section
+    document.getElementById('locomotiveDetails').style.display = 'block';
+    
+    // Fetch locomotive details from API
+    fetch(`/loco-predictions/api/locomotive_info/${encodeURIComponent(locoId)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                // Hide details section if locomotive not found
+                document.getElementById('locomotiveDetails').style.display = 'none';
+            } else {
+                // Update display fields with real data
+                document.getElementById('displayModel').textContent = data.model;
+                document.getElementById('displayAge').textContent = data.age + ' years';
+                document.getElementById('displayHours').textContent = data.operating_hours.toLocaleString();
+                document.getElementById('displayStatus').textContent = data.current_status;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading locomotive details:', error);
+            // Hide details section on error
+            document.getElementById('locomotiveDetails').style.display = 'none';
+        });
+}
+
+// Generate quick prediction
+function generateQuickPrediction() {
+    const locomotiveNumber = document.getElementById('locomotive_number').value;
+    const locomotiveType = document.getElementById('locomotive_type').value;
+    const predictionType = document.getElementById('prediction_type').value;
+    const period = document.getElementById('prediction_period').value;
+    
+    if (!locomotiveNumber || !locomotiveType || !predictionType) {
+        alert('Please fill in all required fields for quick prediction.');
+        return;
+    }
+    
+    // Show loading state
+    const previewDiv = document.getElementById('quickPreview');
+    const previewContent = document.getElementById('previewContent');
+    previewDiv.style.display = 'block';
+    previewContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Generating prediction...</div>';
+    
+    // Make API call
+    fetch(`{{ url_for('loco_predictions.api_quick_predict') }}?locomotive_number=${encodeURIComponent(locomotiveNumber)}&locomotive_type=${encodeURIComponent(locomotiveType)}&prediction_type=${encodeURIComponent(predictionType)}&period=${encodeURIComponent(period)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                previewContent.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+            
+            // Display prediction results
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Risk Assessment</h6>
+                        <p><strong>Risk Score:</strong> ${data.risk_score.toFixed(1)}</p>
+                        <p><strong>Risk Level:</strong> <span class="badge bg-${data.risk_level === 'High' ? 'danger' : data.risk_level === 'Medium' ? 'warning' : 'success'}">${data.risk_level}</span></p>
+                        <p><strong>Reliability:</strong> <span class="badge bg-${data.reliability_category === 'High' ? 'success' : data.reliability_category === 'Medium' ? 'warning' : 'danger'}">${data.reliability_category}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Predictions (${data.period_days} days)</h6>
+            `;
+            
+            if (data.predictions) {
+                for (const [key, value] of Object.entries(data.predictions)) {
+                    html += `<p><strong>${key.replace(/_/g, ' ').toUpperCase()}:</strong> ${value}</p>`;
+                }
+            }
+            
+            html += `
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Recommendations</h6>
+                        <ul>
+            `;
+            
+            if (data.recommendations) {
+                data.recommendations.forEach(rec => {
+                    html += `<li>${rec}</li>`;
+                });
+            }
+            
+            html += `
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            previewContent.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Prediction error:', error);
+            previewContent.innerHTML = '<div class="alert alert-danger">Error generating prediction. Please try again.</div>';
+        });
+}
+
+// Clear all predictions function
+function clearAllPredictions() {
+    if (confirm('Are you sure you want to clear all recent predictions? This action cannot be undone.')) {
+        // Create a form and submit it to clear predictions
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("loco_predictions.clear_all") }}';
+        
+        // Add CSRF token if available
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Auto-set locomotive type when locomotive number is entered
+document.addEventListener('DOMContentLoaded', function() {
+    const locomotiveNumberInput = document.getElementById('locomotive_number');
+    const locomotiveTypeSelect = document.getElementById('locomotive_type');
+    
+    if (locomotiveNumberInput && locomotiveTypeSelect) {
+        locomotiveNumberInput.addEventListener('blur', function() {
+            const locomotiveNumber = this.value.trim();
+            if (locomotiveNumber) {
+                // Fetch locomotive info and auto-set the type
+                fetch(`/loco-predictions/api/locomotive_info/${encodeURIComponent(locomotiveNumber)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            // Locomotive not found - clear the type selection
+                            locomotiveTypeSelect.value = '';
+                            locomotiveTypeSelect.style.borderColor = '#dc3545';
+                            locomotiveTypeSelect.title = 'Locomotive not found in database';
+                        } else {
+                            // Locomotive found - set the correct type
+                            locomotiveTypeSelect.value = data.model;
+                            locomotiveTypeSelect.style.borderColor = '#28a745';
+                            locomotiveTypeSelect.title = `Auto-selected: ${data.model}`;
+                            
+                            // Update locomotive details display
+                            loadLocomotiveDetails(locomotiveNumber);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching locomotive info:', error);
+                        locomotiveTypeSelect.value = '';
+                        locomotiveTypeSelect.style.borderColor = '#dc3545';
+                    });
+            } else {
+                // Clear type selection if locomotive number is empty
+                locomotiveTypeSelect.value = '';
+                locomotiveTypeSelect.style.borderColor = '';
+                locomotiveTypeSelect.title = '';
+            }
+        });
+    }
+    
+           // Form validation
+           const form = document.getElementById('predictionForm');
+           if (form) {
+               form.addEventListener('submit', function(e) {
+                   const locomotiveNumber = document.getElementById('locomotive_number').value;
+                   const locomotiveType = document.getElementById('locomotive_type').value;
+                   const predictionType = document.getElementById('prediction_type').value;
+                   
+                   if (!locomotiveNumber || !locomotiveType || !predictionType) {
+                       e.preventDefault();
+                       alert('Please fill in all required fields.');
+                       return false;
+                   }
+            
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+            submitBtn.disabled = true;
+            
+            // Re-enable button after 5 seconds (in case of error)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+    }
+    
+           // Bulk prediction form validation
+           const bulkForm = document.getElementById('bulkPredictionForm');
+           if (bulkForm) {
+               bulkForm.addEventListener('submit', function(e) {
+                   const locomotiveNumbers = document.getElementById('bulk_locomotive_numbers').value.trim();
+                   const predictionType = document.getElementById('bulk_prediction_type').value;
+                   
+                   if (!locomotiveNumbers || !predictionType) {
+                       e.preventDefault();
+                       alert('Please fill in all required fields for bulk prediction.');
+                       return false;
+                   }
+            
+            // Count locomotive numbers
+            const locoCount = locomotiveNumbers.split('\n').filter(line => line.trim()).length;
+            if (locoCount === 0) {
+                e.preventDefault();
+                alert('Please enter at least one locomotive number.');
+                return false;
+            }
+            
+            if (locoCount > 20) {
+                e.preventDefault();
+                alert('Maximum 20 locomotives allowed for bulk prediction.');
+                return false;
+            }
+            
+            // Show loading state
+            const submitBtn = bulkForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+            submitBtn.disabled = true;
+            
+            // Re-enable button after 15 seconds (in case of error)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 15000);
+        });
+    }
+});
+</script>
+{% endblock %}

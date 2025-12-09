@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">Locomotive Performance Prediction System</h2>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group">
+            <a href="{{ url_for('loco_predictions.index') }}" class="btn" style="background-color: #28a745; color: white; border: 1px solid #28a745;">
+                <i class="fas fa-calculator me-2"></i>Quick Predict
+            </a>
+            <a href="{{ url_for('locomotives.index') }}" class="btn" style="background-color: white; color: #007bff; border: 1px solid #007bff;">
+                <i class="fas fa-train me-2"></i>View Fleet
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-train fa-2x" style="color: #495057;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <p class="text-muted mb-1">Total Fleet</p>
+                        <h3 class="mb-0" style="color: #212529;" id="totalFleet">{{ fleet_stats.total }}</h3>
+                        <small style="color: #6c757d;">
+                            <i class="fas fa-arrow-up me-1"></i>2024 High Performers
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-check-circle fa-2x" style="color: #28a745;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <p class="text-muted mb-1">Avg Reliability</p>
+                        <h3 class="mb-0" style="color: #28a745;" id="avgReliability">85.2%</h3>
+                        <small style="color: #28a745;">
+                            <i class="fas fa-check me-1"></i>Above Average
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle fa-2x" style="color: #dc3545;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <p class="text-muted mb-1">High Risk</p>
+                        <h3 class="mb-0" style="color: #dc3545;" id="highRiskCount">12</h3>
+                        <small style="color: #6c757d;">
+                            <i class="fas fa-eye me-1"></i>Requires Attention
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chart-bar fa-2x" style="color: #007bff;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <p class="text-muted mb-1">Predictions</p>
+                        <h3 class="mb-0" style="color: #007bff;" id="totalPredictions">0</h3>
+                        <small style="color: #007bff;">
+                            <i class="fas fa-calculator me-1"></i>ML Generated
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2" style="color: #495057;"></i>Fleet Performance Overview
+                </h5>
+                <small style="color: #6c757d;">2024 locomotive reliability and risk distribution</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2" style="color: #495057;"></i>Fleet Type Distribution
+                </h5>
+                <small style="color: #6c757d;">NRZ Fleet vs Hired Fleet composition</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="fleetTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator me-2" style="color: #495057;"></i>Recent ML Predictions
+                </h5>
+                <small style="color: #6c757d;">Latest performance forecasts</small>
+            </div>
+            <div class="card-body">
+                {% if recent_predictions %}
+                    {% for prediction in recent_predictions %}
+                    <div class="d-flex align-items-center mb-3 p-2" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                        <div class="flex-shrink-0">
+                            <span class="badge" style="background-color: {{ '#dc3545' if prediction.risk_level == 'High' else '#ffc107' if prediction.risk_level == 'Medium' else '#28a745' }}; color: white;">
+                                {{ prediction.risk_level }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1" style="color: #212529;">{{ prediction.locomotive.locomotive_id }} ({{ prediction.locomotive.model }})</h6>
+                            <p style="color: #6c757d; margin-bottom: 0;">Reliability: {{ "%.1f"|format(prediction.locomotive.calculate_reliability()) }}%</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <small style="color: #6c757d;">{{ prediction.created_at.strftime('%m/%d') }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calculator fa-3x" style="color: #6c757d; margin-bottom: 1rem;"></i>
+                        <p style="color: #6c757d;">No recent predictions</p>
+                        <a href="{{ url_for('loco_predictions.index') }}" class="btn btn-sm" style="background-color: #007bff; color: white; border: 1px solid #007bff;">
+                            <i class="fas fa-plus me-1"></i>Generate Predictions
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-medal me-2" style="color: #495057;"></i>Top Performers
+                </h5>
+                <small style="color: #6c757d;">2024 locomotives with highest reliability</small>
+            </div>
+            <div class="card-body">
+                {% if top_performers %}
+                    {% for locomotive in top_performers %}
+                    <div class="d-flex align-items-center mb-3 p-2" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                        <div class="flex-shrink-0">
+                            <span class="badge" style="background-color: {{ '#007bff' if locomotive.model == 'DE10' else '#17a2b8' }}; color: white;">
+                                {{ locomotive.model }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1" style="color: #212529;">{{ locomotive.locomotive_id }}</h6>
+                            <p style="color: #6c757d; margin-bottom: 0;">{{ 'NRZ Fleet' if locomotive.model == 'DE10' else 'Hired Fleet' }}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="badge" style="background-color: #28a745; color: white;">{{ "%.1f"|format(locomotive.calculate_reliability()) }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-medal fa-3x" style="color: #6c757d; margin-bottom: 1rem;"></i>
+                        <p style="color: #6c757d;">Loading top performers...</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load dashboard metrics
+    fetch('/api/dashboard_metrics')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalFleet').textContent = data.total_fleet;
+            document.getElementById('avgReliability').textContent = data.avg_reliability + '%';
+            document.getElementById('highRiskCount').textContent = data.high_risk_count;
+            document.getElementById('totalPredictions').textContent = data.total_predictions;
+        });
+    
+    // Fleet Performance Chart
+    fetch('/api/performance_chart')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    
+    // Fleet Type Distribution Chart
+    fetch('/api/fleet_type_chart')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('fleetTypeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock %}

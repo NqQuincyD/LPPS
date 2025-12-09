@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">User Profile</h2>
+        <p class="text-muted">Manage your account information and preferences</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Profile Information -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>Profile Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <p class="form-control-plaintext">{{ current_user.get_full_name() }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Username</label>
+                        <p class="form-control-plaintext">{{ current_user.username }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <p class="form-control-plaintext">{{ current_user.email }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Role</label>
+                        <p class="form-control-plaintext">
+                            <span class="badge bg-primary">{{ current_user.role.title() if current_user.role else 'User' }}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Member Since</label>
+                        <p class="form-control-plaintext">{{ user_stats.member_since }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Last Login</label>
+                        <p class="form-control-plaintext">{{ user_stats.last_login }}</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                    <a href="{{ url_for('user.change_password') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Statistics -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Your Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-train fa-2x text-primary mb-2"></i>
+                            <h4 class="mb-1">{{ user_stats.locomotives }}</h4>
+                            <small class="text-muted">Locomotives</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
+                            <h4 class="mb-1">{{ user_stats.predictions }}</h4>
+                            <small class="text-muted">Predictions</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-wrench fa-2x text-warning mb-2"></i>
+                            <h4 class="mb-1">{{ user_stats.maintenance }}</h4>
+                            <small class="text-muted">Maintenance</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-calendar fa-2x text-info mb-2"></i>
+                            <h4 class="mb-1">{{ user_stats.member_since.split()[0] if user_stats.member_since != 'Unknown' else 'N/A' }}</h4>
+                            <small class="text-muted">Joined</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('locomotives.add') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>Add Locomotive
+                    </a>
+                    <a href="{{ url_for('loco_predictions.index') }}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-chart-line me-2"></i>Generate Prediction
+                    </a>
+                    <a href="{{ url_for('reports.index') }}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-file-alt me-2"></i>View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

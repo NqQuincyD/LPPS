@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}{{ locomotive.locomotive_id }} - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">{{ locomotive.locomotive_id }}</h2>
+        <p class="text-muted">{{ locomotive.model }} - {{ locomotive.manufacturing_year }}</p>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group">
+            <a href="{{ url_for('loco_predictions.predict_single', locomotive_id=locomotive.locomotive_id) }}" class="btn" style="background-color: #28a745; color: white; border: 1px solid #28a745;">
+                <i class="fas fa-calculator me-2"></i>Predict
+            </a>
+            <a href="{{ url_for('locomotives.edit', id=locomotive.id) }}" class="btn" style="background-color: white; color: #6c757d; border: 1px solid #6c757d;">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a href="{{ url_for('locomotives.index') }}" class="btn" style="background-color: white; color: #007bff; border: 1px solid #007bff;">
+                <i class="fas fa-arrow-left me-2"></i>Back to Locomotives
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2" style="color: #495057;"></i>2024 Performance Metrics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card" style="border: 1px solid #dee2e6; background-color: #f8f9fa;">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
+                                <h6 class="card-title" style="color: #495057;">Reliability</h6>
+                                <h4 style="color: #28a745;">{{ "%.1f"|format(locomotive.calculate_reliability()) }}%</h4>
+                                <small style="color: #6c757d;">Overall Performance</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card" style="border: 1px solid #dee2e6; background-color: #f8f9fa;">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar fa-2x mb-2" style="color: #007bff;"></i>
+                                <h6 class="card-title" style="color: #495057;">Availability</h6>
+                                <h4 style="color: #007bff;">{{ "%.0f"|format(locomotive.calculate_reliability() * 3.65) }} days</h4>
+                                <small style="color: #6c757d;">Annual Availability</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card" style="border: 1px solid #dee2e6; background-color: #f8f9fa;">
+                            <div class="card-body text-center">
+                                <i class="fas fa-route fa-2x mb-2" style="color: #ffc107;"></i>
+                                <h6 class="card-title" style="color: #495057;">Distance/Day</h6>
+                                <h4 style="color: #ffc107;">{{ "%.0f"|format(locomotive.operating_hours * 0.05) }} km</h4>
+                                <small style="color: #6c757d;">Average Daily Distance</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card" style="border: 1px solid #dee2e6; background-color: #f8f9fa;">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2" style="color: {{ '#dc3545' if locomotive.get_risk_level() == 'High' else '#ffc107' if locomotive.get_risk_level() == 'Medium' else '#28a745' }};"></i>
+                                <h6 class="card-title" style="color: #495057;">Risk Level</h6>
+                                <h4 style="color: {{ '#dc3545' if locomotive.get_risk_level() == 'High' else '#ffc107' if locomotive.get_risk_level() == 'Medium' else '#28a745' }};">
+                                    {{ locomotive.get_risk_level() }}
+                                </h4>
+                                <small style="color: #6c757d;">Risk Assessment</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Locomotive Details -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card" style="border: 2px solid #6c757d;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #6c757d;">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2" style="color: #495057;"></i>Locomotive Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Locomotive ID:</strong><br>
+                        <span class="text-muted">{{ locomotive.locomotive_id }}</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Model:</strong><br>
+                        <span class="badge" style="background-color: {{ '#007bff' if locomotive.model == 'DE10' else '#17a2b8' }}; color: white;">
+                            {{ locomotive.model }}
+                        </span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Fleet Type:</strong><br>
+                        <span class="badge" style="background-color: {{ '#28a745' if locomotive.model == 'DE10' else '#ffc107' }}; color: {{ 'white' if locomotive.model == 'DE10' else 'black' }};">
+                            {{ 'NRZ Fleet' if locomotive.model == 'DE10' else 'Hired Fleet' }}
+                        </span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Manufacturing Year:</strong><br>
+                        <span class="text-muted">{{ locomotive.manufacturing_year }}</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Age:</strong><br>
+                        <span class="text-muted">{{ locomotive.age }} years</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Operating Hours:</strong><br>
+                        <span class="text-muted">{{ "{:,}".format(locomotive.operating_hours) }}</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Last Maintenance:</strong><br>
+                        <span class="text-muted">
+                            {% if locomotive.last_maintenance %}
+                                {{ locomotive.last_maintenance.strftime('%B %d, %Y') }}
+                            {% else %}
+                                No maintenance record
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Current Status:</strong><br>
+                        <span class="badge bg-{{ locomotive.status_color }} status-badge">
+                            {{ locomotive.status_display }}
+                        </span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Risk Level:</strong><br>
+                        <span class="badge bg-{{ 'danger' if locomotive.get_risk_level() == 'High' else 'warning' if locomotive.get_risk_level() == 'Medium' else 'success' }} status-badge">
+                            {{ locomotive.get_risk_level() }} ({{ "%.1f"|format(locomotive.calculate_risk_score()) }}%)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Risk Assessment</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Overall Risk Score</span>
+                        <strong>{{ "%.1f"|format(locomotive.calculate_risk_score()) }}%</strong>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-{{ 'danger' if locomotive.get_risk_level() == 'High' else 'warning' if locomotive.get_risk_level() == 'Medium' else 'success' }}" 
+                             style="width: {{ locomotive.calculate_risk_score() }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Age Factor</span>
+                        <span class="badge bg-{{ 'danger' if locomotive.age > 25 else 'warning' if locomotive.age > 20 else 'success' }}">
+                            {{ locomotive.age }} years
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Usage Factor</span>
+                        <span class="badge bg-{{ 'danger' if locomotive.operating_hours > 50000 else 'warning' if locomotive.operating_hours > 30000 else 'success' }}">
+                            {{ "{:,}".format(locomotive.operating_hours) }} hrs
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Recommendations -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Maintenance Recommendations</h5>
+            </div>
+            <div class="card-body">
+                {% set recommendations = locomotive.get_maintenance_recommendations() %}
+                {% if recommendations %}
+                    {% for recommendation in recommendations %}
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-wrench text-{{ 'danger' if recommendation.priority == 'High' else 'warning' if recommendation.priority == 'Medium' else 'success' }}"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">{{ recommendation.type }}</h6>
+                            <p class="text-muted mb-1">{{ recommendation.description }}</p>
+                            <small class="text-muted">
+                                Priority: <span class="badge bg-{{ 'danger' if recommendation.priority == 'High' else 'warning' if recommendation.priority == 'Medium' else 'success' }}">
+                                    {{ recommendation.priority }}
+                                </span>
+                                {% if recommendation.estimated_cost %}
+                                    | Cost: {{ recommendation.estimated_cost }}
+                                {% endif %}
+                                {% if recommendation.timeframe %}
+                                    | Timeframe: {{ recommendation.timeframe }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No specific recommendations at this time</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Predictions -->
+{% if predictions %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Predictions</h5>
+            </div>
+            <div class="card-body">
+                {% for prediction in predictions %}
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-{{ 'danger' if prediction.risk_level == 'High' else 'warning' if prediction.risk_level == 'Medium' else 'success' }} rounded-pill">
+                            {{ prediction.risk_level }}
+                        </span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Risk Score: {{ "%.1f"|format(prediction.risk_score) }}%</h6>
+                        <p class="text-muted mb-0">Generated {{ prediction.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{{ url_for('loco_predictions.view_result', id=prediction.id) }}" class="btn btn-outline-primary btn-sm">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Maintenance Records -->
+{% if maintenance_records %}
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Maintenance History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Performed By</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in maintenance_records %}
+                            <tr>
+                                <td>{{ record.maintenance_type.title() }}</td>
+                                <td>{{ record.description }}</td>
+                                <td>{{ record.performed_by }}</td>
+                                <td>{{ record.start_date.strftime('%m/%d/%Y') }}</td>
+                                <td>{{ record.end_date.strftime('%m/%d/%Y') if record.end_date else 'Ongoing' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if record.is_completed else 'warning' }}">
+                                        {{ record.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NRZ Locomotive Performance Prediction System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --dark-bg: #343a40;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+        
+        .card {
+            border: 2px solid #6c757d;
+            box-shadow: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .alert {
+            border-radius: 0.5rem;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .metric-card {
+            transition: transform 0.2s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-brand {
+            color: white;
+            text-decoration: none;
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar-brand:hover {
+            color: #5D5CDE;
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+        }
+        
+        .sidebar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar-nav .nav-link:hover {
+            background: rgba(93, 92, 222, 0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar-nav .nav-link.active {
+            background: #5D5CDE;
+            color: white;
+        }
+        
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-footer .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .sidebar-footer .nav-link:hover {
+            color: #5D5CDE;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: #f8f9fa;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content-wrapper {
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Flash Messages */
+        .alert {
+            position: relative;
+            z-index: 10;
+            margin: 1rem 0;
+        }
+        
+        /* Ensure flash messages are not covered by sidebar */
+        .container-fluid .alert {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        /* Compact Chart Styles */
+        .chart-container {
+            height: 200px !important;
+            position: relative;
+        }
+        
+        .chart-container canvas {
+            max-height: 200px !important;
+        }
+        
+        .metric-card {
+            height: 120px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .metric-card .card-body {
+            padding: 1rem;
+        }
+        
+        .metric-card h3 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .metric-card p {
+            font-size: 0.85rem;
+            margin: 0;
+        }
+        
+        /* Ensure sidebar doesn't overlap content */
+        .sidebar {
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Make sure all content is properly spaced */
+        .main-content {
+            overflow-x: auto;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        /* Additional spacing for mobile */
+        @media (max-width: 576px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <a href="{{ url_for('main.dashboard') }}" class="sidebar-brand">
+                <i class="fas fa-train me-2"></i>LPPS
+            </a>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('locomotives.index') }}">
+                        <i class="fas fa-train me-2"></i>Locomotives
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('loco_predictions.index') }}">
+                        <i class="fas fa-brain me-2"></i>Loco Predictions
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('reports.index') }}">
+                        <i class="fas fa-file-alt me-2"></i>Reports
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('data_collection.index') }}">
+                        <i class="fas fa-database me-2"></i>Data Collection
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            {% if current_user.is_authenticated %}
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user me-2"></i>{{ current_user.get_full_name() }}
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ url_for('user.profile') }}"><i class="fas fa-user-cog me-2"></i>Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('user.settings') }}"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+            {% else %}
+            <div class="nav-links">
+                <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="main-content">
+                <div class="content-wrapper">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center text-muted py-3 mt-5">
+        <div class="container">
+            <p class="mb-0">&copy; 2025 LPPS By NqQuincyD</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Confirm delete dialogs
+        function confirmDelete(message) {
+            return confirm(message || 'Are you sure you want to delete this item?');
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

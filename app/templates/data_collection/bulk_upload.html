@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Upload - NRZ LPPS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Bulk Upload Train Data</h1>
+                    <p class="text-muted">Upload multiple train movements from CSV files</p>
+                </div>
+                <a href="{{ url_for('data_collection.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Data Collection
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-upload me-2"></i>Upload CSV File
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label for="csv_file" class="form-label">Select CSV File *</label>
+                            <input type="file" class="form-control" id="csv_file" name="csv_file" 
+                                   accept=".csv" required>
+                            <div class="form-text">
+                                Upload a CSV file containing train movement data. 
+                                <a href="#" onclick="downloadTemplate()">Download template</a>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="graph_month" class="form-label">Graph Month *</label>
+                            <select class="form-select" id="graph_month" name="graph_month" required>
+                                <option value="">Select Month</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="graph_year" class="form-label">Graph Year *</label>
+                            <input type="number" class="form-control" id="graph_year" name="graph_year" 
+                                   value="{{ current_year }}" min="2020" max="2030" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="validate_data" name="validate_data" checked>
+                                <label class="form-check-label" for="validate_data">
+                                    Validate data before importing
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('data_collection.index') }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>Upload and Process
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Panel -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Upload Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">CSV Format Requirements</h6>
+                    <p class="small text-muted mb-3">
+                        Your CSV file must contain the following columns in this exact order:
+                    </p>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">Required Columns:</h6>
+                        <ol class="small text-muted">
+                            <li><strong>train_number</strong> - Train identifier</li>
+                            <li><strong>locomotive_number</strong> - Locomotive ID</li>
+                            <li><strong>departure_station</strong> - Starting station</li>
+                            <li><strong>arrival_station</strong> - Destination station</li>
+                            <li><strong>departure_time</strong> - Format: YYYY-MM-DD HH:MM</li>
+                            <li><strong>arrival_time</strong> - Format: YYYY-MM-DD HH:MM</li>
+                            <li><strong>load_tons</strong> - Load weight in tons</li>
+                            <li><strong>wagons_count</strong> - Number of wagons</li>
+                            <li><strong>axles_count</strong> - Number of axles</li>
+                            <li><strong>net_weight</strong> - Net weight in tons</li>
+                            <li><strong>distance_km</strong> - Distance in kilometers</li>
+                        </ol>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-primary">Optional Columns:</h6>
+                        <ul class="small text-muted">
+                            <li><strong>route_type</strong> - Passenger/Freight/Mixed</li>
+                            <li><strong>service_type</strong> - Express/Local/Goods</li>
+                            <li><strong>status</strong> - Active/Delayed/Cancelled</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-primary">Tips:</h6>
+                        <ul class="small text-muted">
+                            <li>Use comma-separated values</li>
+                            <li>Include header row</li>
+                            <li>Use consistent date format</li>
+                            <li>Check for missing values</li>
+                            <li>Validate station names</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Download the template to see the exact format required.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function downloadTemplate() {
+    // Create sample CSV content
+    const csvContent = `train_number,locomotive_number,departure_station,arrival_station,departure_time,arrival_time,load_tons,wagons_count,axles_count,net_weight,distance_km,route_type,service_type,status
+1234,L001,Harare Central,Bulawayo,2024-01-15 08:00,2024-01-15 14:30,150.5,10,20,120.0,450.0,Freight,Goods,Active
+1235,L002,Bulawayo,Victoria Falls,2024-01-15 16:00,2024-01-15 20:00,200.0,15,30,180.0,300.0,Freight,Goods,Active
+1236,L003,Harare Central,Gweru,2024-01-16 09:00,2024-01-16 12:00,100.0,8,16,80.0,250.0,Passenger,Express,Active`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'train_movements_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// Set current month as default
+document.addEventListener('DOMContentLoaded', function() {
+    const currentMonth = new Date().getMonth() + 1;
+    document.getElementById('graph_month').value = currentMonth;
+});
+</script>
+{% endblock %}
