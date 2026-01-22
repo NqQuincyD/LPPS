@@ -6,6 +6,10 @@ from app.models.maintenance import MaintenanceRecord
 
 app = create_app()
 
+# ensure tables exist
+with app.app_context():
+    db.create_all()
+
 @app.shell_context_processor
 def make_shell_context():
     return {
@@ -17,6 +21,4 @@ def make_shell_context():
     }
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True, host='0.0.0.0', port=5000)
