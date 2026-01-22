@@ -8,7 +8,7 @@ class Config:
     
     # Database configuration
     DB_HOST = os.environ.get('DB_HOST') or 'localhost'
-    DB_PORT = os.environ.get('DB_PORT') or '3307'
+    DB_PORT = os.environ.get('DB_PORT') or '3306'
     DB_USERNAME = os.environ.get('DB_USERNAME') or 'root'
     DB_PASSWORD = os.environ.get('DB_PASSWORD') or 'Nqopzen23#'
     DB_NAME = os.environ.get('DB_NAME') or 'lopps'
