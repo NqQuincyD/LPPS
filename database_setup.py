@@ -30,12 +30,12 @@ def create_database():
     # Create indexes for better performance
     try:
         # Add indexes for frequently queried columns
-        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")
-        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
-        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_locomotives_id ON locomotives(locomotive_id)")
-        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_locomotives_status ON locomotives(current_status)")
-        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_predictions_locomotive ON predictions(locomotive_id)")
-        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_predictions_active ON predictions(is_active)")
+        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON lpps_users(username)")
+        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON lpps_users(email)")
+        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_locomotives_id ON lpps_locomotives(locomotive_id)")
+        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_locomotives_status ON lpps_locomotives(current_status)")
+        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_predictions_locomotive ON lpps_predictions(locomotive_id)")
+        db.engine.execute("CREATE INDEX IF NOT EXISTS idx_predictions_active ON lpps_predictions(is_active)")
         print("Database indexes created successfully")
     except Exception as e:
         print(f"Warning: Could not create indexes: {e}")

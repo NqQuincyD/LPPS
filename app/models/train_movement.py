@@ -3,7 +3,7 @@ from datetime import datetime
 
 class TrainMovement(db.Model):
     """Model for storing train movement data from monthly graphs"""
-    __tablename__ = 'train_movements'
+    __tablename__ = 'lpps_train_movements'
     
     id = db.Column(db.Integer, primary_key=True)
     

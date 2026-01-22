@@ -2,10 +2,10 @@ from app import db
 from datetime import datetime, date
 
 class MaintenanceRecord(db.Model):
-    __tablename__ = 'maintenance_records'
+    __tablename__ = 'lpps_maintenance_records'
     
     id = db.Column(db.Integer, primary_key=True)
-    locomotive_id = db.Column(db.Integer, db.ForeignKey('locomotives.id'), nullable=False)
+    locomotive_id = db.Column(db.Integer, db.ForeignKey('lpps_locomotives.id'), nullable=False)
     maintenance_type = db.Column(db.String(50), nullable=False)  # 'routine', 'repair', 'overhaul'
     description = db.Column(db.Text, nullable=False)
     performed_by = db.Column(db.String(100), nullable=False)

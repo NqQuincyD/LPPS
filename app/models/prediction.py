@@ -3,10 +3,10 @@ from datetime import datetime, timedelta
 import json
 
 class Prediction(db.Model):
-    __tablename__ = 'predictions'
+    __tablename__ = 'lpps_predictions'
     
     id = db.Column(db.Integer, primary_key=True)
-    locomotive_id = db.Column(db.Integer, db.ForeignKey('locomotives.id'), nullable=False)
+    locomotive_id = db.Column(db.Integer, db.ForeignKey('lpps_locomotives.id'), nullable=False)
     prediction_type = db.Column(db.String(50), nullable=False)  # 'failure', 'maintenance', 'performance'
     prediction_period = db.Column(db.Integer, nullable=False)  # days
     risk_score = db.Column(db.Float, nullable=False)

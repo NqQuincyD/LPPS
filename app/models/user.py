@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'lpps_users'
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(30), unique=True, nullable=False, index=True)

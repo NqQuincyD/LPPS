@@ -3,7 +3,7 @@ from datetime import datetime, date
 from sqlalchemy import func
 
 class Locomotive(db.Model):
-    __tablename__ = 'locomotives'
+    __tablename__ = 'lpps_locomotives'
     
     id = db.Column(db.Integer, primary_key=True)
     locomotive_id = db.Column(db.String(20), unique=True, nullable=False, index=True)
@@ -14,7 +14,7 @@ class Locomotive(db.Model):
     current_status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('lpps_users.id'), nullable=False)
     
     # Relationships
     predictions = db.relationship('Prediction', backref='locomotive', lazy='dynamic', cascade='all, delete-orphan')
