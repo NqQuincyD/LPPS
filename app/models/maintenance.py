@@ -15,7 +15,7 @@ class MaintenanceRecord(db.Model):
     parts_replaced = db.Column(db.Text)  # JSON list of parts
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('lpps_users.id'), nullable=False)
     
     def __init__(self, locomotive_id, maintenance_type, description, performed_by, 
                  start_date, end_date=None, cost=None, parts_replaced=None, 
