@@ -7,13 +7,22 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Database configuration
-    DB_HOST = os.environ.get('DB_HOST') or 'localhost'
-    DB_PORT = os.environ.get('DB_PORT') or '3306'
-    DB_USERNAME = os.environ.get('DB_USERNAME') or 'root'
-    DB_PASSWORD = os.environ.get('DB_PASSWORD') or 'Nqopzen23#'
-    DB_NAME = os.environ.get('DB_NAME') or 'lopps'
+    # Database configuration
+    DATABASE_URL = os.environ.get('DATABASE_URL')
     
-    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    if DATABASE_URL:
+        # Fix for SQLAlchemy requiring 'postgresql' instead of 'postgres'
+        if DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    else:
+        DB_HOST = os.environ.get('DB_HOST') or 'localhost'
+        DB_PORT = os.environ.get('DB_PORT') or '3306'
+        DB_USERNAME = os.environ.get('DB_USERNAME') or 'root'
+        DB_PASSWORD = os.environ.get('DB_PASSWORD') or 'Nqopzen23#'
+        DB_NAME = os.environ.get('DB_NAME') or 'lopps'
+        
+        SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
